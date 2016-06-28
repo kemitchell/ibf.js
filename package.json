@@ -6,12 +6,14 @@
   "repository": "kemitchell/ibf.js",
   "license": "MIT",
   "devDependencies": {
+    "defence-cli": "^2.0.0",
     "murmurhash": "0.0.2",
+    "replace-require-self": "^1.1.1",
     "standard": "^7.1.2",
     "text-encoding": "^0.6.0"
   },
   "scripts": {
-    "test": "node test.js",
+    "test": "defence README.md | replace-require-self | node && echo 'All tests passed.'",
     "lint": "standard"
   }
 }
