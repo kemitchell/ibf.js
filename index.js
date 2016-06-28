@@ -3,9 +3,6 @@ module.exports = IBF
 function IBF (options) {
   if (!this instanceof IBF) return new IBF(options)
 
-  options.idSumElements = options.idSumElements || 1
-  options.hashSumElements = options.hashSumElements || 1
-
   validateOptions(options)
 
   this.checkHash = options.checkHash
