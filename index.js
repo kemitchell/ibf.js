@@ -58,12 +58,11 @@ IBF.prototype._change = function (id, countDelta) {
   })
 }
 
-function xor (existingView, withBuffer) {
-  var ViewType = existingView.constructor
-  var correspondingView = new ViewType(withBuffer)
-  existingView.forEach(function (existingElement, index) {
+function xor (view, buffer) {
+  var correspondingView = makeCorresponding(view, buffer)
+  view.forEach(function (existingElement, index) {
     var correspondingElement = correspondingView[index]
-    existingView[index] = existingElement ^ correspondingElement
+    view[index] = existingElement ^ correspondingElement
   })
 }
 
@@ -91,11 +90,17 @@ IBF.prototype.pure = function (key) {
 }
 
 function equal (view, buffer) {
-  var ViewType = view.constructor
-  var correspondingView = new ViewType(buffer)
+  var correspondingView = makeCorresponding(view, buffer)
   return view.every(function (element, index) {
     return element === correspondingView[index]
   })
+}
+
+// Helpers
+
+function makeCorresponding (view, buffer) {
+  var ViewType = view.constructor
+  return new ViewType(buffer)
 }
 
 // Validation
