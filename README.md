@@ -110,18 +110,19 @@ assert(!filter.has(keys.c), 'no longer has C')
 
 ```javascript
 filter.remove(keys.d)
-assert(!filter.has(keys.d), 'does not have D')
+assert(filter.has(keys.d), 'has D')
+assert(filter.missing(keys.d), 'missing D')
 
 var pure = filter.pure()
 
 assert.equal(pure.length, 2)
 
 assert(pure.some(function (element) {
-  return element.positive && toHex(element.id) == toHex(keys.a)
+  return element.additional && toHex(element.id) == toHex(keys.a)
 }), 'shows has A')
 
 assert(pure.some(function (element) {
-  return !element.positive && toHex(element.id) == toHex(keys.d)
+  return element.missing && toHex(element.id) == toHex(keys.d)
 }), 'shows missing D')
 
 function toHex (buffer) {
@@ -136,5 +137,5 @@ options.arrayBuffer = filter.arrayBuffer.slice()
 var clone = new IBF(options)
 
 assert(clone.has(keys.a), 'clone has A')
-assert(!clone.has(keys.d), 'clone does not have D')
+assert(clone.missing(keys.d), 'clone missing D')
 ```

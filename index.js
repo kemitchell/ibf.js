@@ -69,9 +69,27 @@ IBF.prototype._change = function (id, countDelta) {
 }
 
 IBF.prototype.has = function (id) {
+  return everyHash.call(this, id, function (count) {
+    return count !== 0
+  })
+}
+
+IBF.prototype.additional = function (id) {
+  return everyHash.call(this, id, function (count) {
+    return count > 0
+  })
+}
+
+IBF.prototype.missing = function (id) {
+  return everyHash.call(this, id, function (count) {
+    return count < 0
+  })
+}
+
+function everyHash (id, predicate) {
   var counts = this.counts
   return this.keyHashes.every(function (hash) {
-    return counts[hash(id)] > 0
+    return predicate(counts[hash(id)])
   })
 }
 
@@ -91,8 +109,14 @@ IBF.prototype.pure = function (key) {
       return equal(idSum, element.id)
     })
     if (alreadyFound) return pure
-    return pure.concat({ positive: count === 1, id: idSum.buffer })
+    return pure.concat(record(count, idSum.buffer))
   }, [])
+}
+
+function record (count, id) {
+  return count === 1
+    ? {additional: true, id: id}
+    : {missing: true, id: id}
 }
 
 // Helpers
