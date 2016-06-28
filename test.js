@@ -27,17 +27,14 @@ var filter = new IBF({
   },
   keyHashes: [
     function (buffer) {
-      console.log('hash 1')
       return murmur(bufferToString(buffer)) % n
     },
     function (buffer) {
-      console.log('hash 2')
       return murmur(
         murmur(bufferToString(buffer)).toString()
       ) % n
     },
     function (buffer) {
-      console.log('hash 3')
       return murmur(
         murmur(
           murmur(bufferToString(buffer)).toString()
@@ -46,8 +43,8 @@ var filter = new IBF({
     }
   ],
   countView: Int32Array,
-  idView: Uint32Array,
-  idElements: idElements,
+  idSumView: Uint32Array,
+  idSumElements: idElements,
   hashSumView: Uint32Array,
   hashSumElements: hashSumElements
 })
@@ -74,7 +71,7 @@ filter.insert(digestA.buffer)
 assert(filter.has(digestA.buffer))
 
 for (var i = 0; i < n; i++) {
-  var id = base64(filter.ids.subarray(i, idElements))
+  var id = base64(filter.idSums.subarray(i, idElements))
   var hash = base64(filter.hashSums.subarray(i, 1))
   if (filter.counts[i] !== 0) {
     console.log('%s is %d', 'count', filter.counts[i])
@@ -85,7 +82,7 @@ for (var i = 0; i < n; i++) {
 
 assert(!filter.has(digestB.buffer))
 
-assert.deepEqual(filter.pure(), [{positive: true, id: digestA}])
+assert.deepEqual(filter.pure(), [{positive: true, id: digestA.buffer}])
 
 filter.insert(digestC.buffer)
 assert(filter.has(digestA.buffer))
