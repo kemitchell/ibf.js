@@ -102,6 +102,8 @@ assert(!filter.has(keys.d), 'does not have D')
 
 var pure = filter.pure()
 
+assert.equal(pure.length, 2)
+
 assert(pure.some(function (element) {
   return element.positive && toHex(element.id) == toHex(keys.a)
 }), 'shows has A')

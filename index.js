@@ -77,6 +77,10 @@ IBF.prototype.pure = function (key) {
     var hashOfIdSum = checkHash(idSum.buffer)
     var hashSum = hashSums.subarray(offset, offset + hashSumElements)
     if (!equal(hashSum, hashOfIdSum)) return pure
+    var alreadyFound = pure.some(function (element) {
+      return equal(idSum, element.id)
+    })
+    if (alreadyFound) return pure
     return pure.concat({ positive: count === 1, id: idSum.buffer })
   }, [])
 }
