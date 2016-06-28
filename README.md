@@ -89,6 +89,7 @@ assert(!filter.has(keys.b), 'does not have B')
 ```javascript
 filter.insert(keys.c)
 assert(filter.has(keys.c), 'has C')
+
 filter.remove(keys.c)
 assert(!filter.has(keys.c), 'no longer has C')
 ```
@@ -100,16 +101,14 @@ filter.remove(keys.d)
 var pure = filter.pure()
 
 assert(pure.some(function (element) {
-  return element.positive === true &&
-    toHexString(element.id) == toHexString(keys.a)
+  return element.positive && toHex(element.id) == toHex(keys.a)
 }), 'shows has A')
 
 assert(pure.some(function (element) {
-  return element.positive === false &&
-    toHexString(element.id) == toHexString(keys.d)
+  return !element.positive && toHex(element.id) == toHex(keys.d)
 }), 'shows missing D')
 
-function toHexString (buffer) {
+function toHex (buffer) {
   return new Buffer(buffer).toString('hex')
 }
 ```
