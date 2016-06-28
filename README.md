@@ -17,6 +17,8 @@ The example in this `README` is run as the package's test suite.
 var TextDecoder = require('text-encoding').TextDecoder
 var murmur = require('murmurhash').v3
 
+var n = 1000
+
 function bufferToString (buffer) {
   return new TextDecoder('utf8').decode(new Uint8Array(buffer))
 }
@@ -54,9 +56,7 @@ function tripleMurmur (buffer) {
 ```javascript
 var IBF = require('ibf')
 
-var n = 1000
-
-var filter = new IBF({
+var options = {
   n: n,
 
   checkHash: binaryMurmur,
@@ -72,7 +72,9 @@ var filter = new IBF({
   // Internal hashes will be 32-bit murmur digests.
   hashSumElements: 1,
   hashSumView: Uint32Array
-})
+}
+
+var filter = new IBF(options)
 ```
 
 ## Inserting & Querying
@@ -130,17 +132,8 @@ function toHex (buffer) {
 ## Cloning
 
 ```javascript
-var clone = new IBF({
-  arrayBuffer: filter.arrayBuffer.slice(),
-  n: n,
-  checkHash: binaryMurmur,
-  keyHashes: [singleMurmur, doubleMurmur, tripleMurmur],
-  countView: Int32Array,
-  idSumElements: 8,
-  idSumView: Uint32Array,
-  hashSumElements: 1,
-  hashSumView: Uint32Array
-})
+options.arrayBuffer = filter.arrayBuffer.slice()
+var clone = new IBF(options)
 
 assert(clone.has(keys.a), 'clone has A')
 assert(!clone.has(keys.d), 'clone does not have D')
