@@ -61,7 +61,7 @@ IBF.prototype._change = function (id, countDelta) {
 IBF.prototype.has = function (id) {
   var counts = this.counts
   return this.keyHashes.every(function (hash) {
-    return counts[hash(id)] !== 0
+    return counts[hash(id)] > 0
   })
 }
 

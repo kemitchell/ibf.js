@@ -98,6 +98,8 @@ assert(!filter.has(keys.c), 'no longer has C')
 
 ```javascript
 filter.remove(keys.d)
+assert(!filter.has(keys.d), 'does not have D')
+
 var pure = filter.pure()
 
 assert(pure.some(function (element) {
