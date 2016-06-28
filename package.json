@@ -6,7 +6,6 @@
   "repository": "kemitchell/ibf.js",
   "license": "MIT",
   "devDependencies": {
-    "base64-arraybuffer": "^0.1.5",
     "murmurhash": "0.0.2",
     "text-encoding": "^0.6.0"
   },

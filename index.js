@@ -8,15 +8,18 @@ function IBF (options) {
   var idSumElements = options.idSumElements || 1
   var hashSumElements = options.hashSumElements || 1
 
-  if (!validHash(options.checkHash)) throw new Error('Invalid checkHash')
-  if (!validHashes(options.keyHashes)) throw new Error('Invalid keyHashes')
-  if (!validInteger(options.n)) throw new Error('Invalid n')
-  if (!validInteger(idSumElements)) throw new Error('Invalid idSumElements')
-  if (!validInteger(hashSumElements)) throw new Error('Invalid hashSumElements')
-  if (!validInteger(options.hashCount)) throw new Error('Invalid hashCount')
-  if (!validCountView(options.countView)) throw new Error('Invalid countView')
-  if (!validIdView(options.idSumView)) throw new Error('Invalid idSumView')
-  if (!validIdView(options.hashSumView)) throw new Error('Invalid hashSumView')
+  if (!isInteger(options.n)) throw new Error('Invalid n')
+
+  if (!isHash(options.checkHash)) throw new Error('Invalid checkHash')
+  if (!isHashes(options.keyHashes)) throw new Error('Invalid keyHashes')
+
+  if (!isCountView(options.countView)) throw new Error('Invalid countView')
+
+  if (!isIdView(options.idSumView)) throw new Error('Invalid idSumView')
+  if (!isInteger(idSumElements)) throw new Error('Invalid idSumElements')
+
+  if (!isIdView(options.hashSumView)) throw new Error('Invalid hashSumView')
+  if (!isInteger(hashSumElements)) throw new Error('Invalid hashSumElements')
 
   this.checkHash = options.checkHash
   this.keyHashes = options.keyHashes
@@ -127,19 +130,19 @@ IBF.prototype.clone = function () {
 
 // Validation
 
-function validHash (hash) {
+function isHash (hash) {
   return typeof hash === 'function'
 }
 
-function validHashes (hashes) {
-  return Array.isArray(hashes) && hashes.length !== 0 && hashes.every(validHash)
+function isHashes (hashes) {
+  return Array.isArray(hashes) && hashes.length !== 0 && hashes.every(isHash)
 }
 
-function validInteger (n) {
+function isInteger (n) {
   return Number.isInteger(n) && n > 0
 }
 
-function validCountView (view) {
+function isCountView (view) {
   return (
     view === Int8Array ||
     view === Int16Array ||
@@ -147,7 +150,7 @@ function validCountView (view) {
   )
 }
 
-function validIdView (view) {
+function isIdView (view) {
   return (
     view === Uint8Array ||
     view === Uint8ClampedArray ||

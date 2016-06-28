@@ -1,9 +1,8 @@
+var IBF = require('./')
 var TextDecoder = require('text-encoding').TextDecoder
 var assert = require('assert')
-var IBF = require('./')
-var murmur = require('murmurhash').v3
 var crypto = require('crypto')
-var base64 = require('base64-arraybuffer').encode
+var murmur = require('murmurhash').v3
 
 var n = 100
 
@@ -16,7 +15,6 @@ function bufferToString (buffer) {
 
 var filter = new IBF({
   n: n,
-  hashCount: 3,
   checkHash: function binaryMurmur (buffer) {
     var inputString = bufferToString(buffer)
     var digestNumber = murmur(inputString)
@@ -63,28 +61,16 @@ var digestA = hashContent(contentA)
 var digestB = hashContent(contentB)
 var digestC = hashContent(contentC)
 
-console.log('a is %j', digestA.toString('base64'))
-console.log('b is %j', digestB.toString('base64'))
-console.log('c is %j', digestC.toString('base64'))
-
 filter.insert(digestA.buffer)
-assert(filter.has(digestA.buffer))
+assert(filter.has(digestA.buffer), 'has A')
 
-for (var i = 0; i < n; i++) {
-  var id = base64(filter.idSums.subarray(i, idElements))
-  var hash = base64(filter.hashSums.subarray(i, 1))
-  if (filter.counts[i] !== 0) {
-    console.log('%s is %d', 'count', filter.counts[i])
-    console.log('%s is %j', 'idSum', id)
-    console.log('%s is %j', 'hashSum', hash)
-  }
-}
+assert(!filter.has(digestB.buffer), 'does not have B')
 
-assert(!filter.has(digestB.buffer))
-
-assert.deepEqual(filter.pure(), [{positive: true, id: digestA.buffer}])
+assert.deepEqual(
+  filter.pure(), [{positive: true, id: digestA.buffer}],
+  'A is positive-pure')
 
 filter.insert(digestC.buffer)
-assert(filter.has(digestA.buffer))
+assert(filter.has(digestC.buffer), 'has C')
 filter.remove(digestC.buffer)
-assert(!filter.has(digestA.buffer))
+assert(!filter.has(digestC.buffer), 'no longer has C')
