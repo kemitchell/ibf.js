@@ -3,35 +3,48 @@ module.exports = IBF
 function IBF (options) {
   if (!this instanceof IBF) return new IBF(options)
 
-  if (!validHashes(options.hashes)) throw new Error('Invalid hashes')
-  if (!validM(options.m)) throw new Error('Invalid m')
+  if (!validHash(options.checkHash)) throw new Error('Invalid checkHash')
+  if (!validHash(options.keyHash)) throw new Error('Invalid keyHash')
+  if (!validInteger(options.n)) throw new Error('Invalid n')
+  if (!validInteger(options.k)) throw new Error('Invalid k')
   if (!validCountView(options.countView)) throw new Error('Invalid countView')
   if (!validIdView(options.idView)) throw new Error('Invalid idView')
+  if (!validIdView(options.hashSumView)) throw new Error('Invalid hashSumView')
 
-  this.hashes = options.hashes
-  var m = this.m = options.m
+  var n = this.n = options.n
+
+  this.keyHash = options.keyHash
+  this.checkHash = options.checkHash
+
+  var keyHashes = this.keyHashes = []
+  var k = this.k = options.k
+  for (var i = 1; i <= k; i++) {
+    keyHashes.push(this.recursiveIndexHash.bind(this, i))
+  }
 
   var CountView = this.CountView = options.countView
-  var IdView = this.IdView = options.IdView
-  var countBytes = CountView.BYTES_PER_ELEMENT * m
-  var idBytes = IdView.BYTES_PER_ELEMENT * m
+  var IdView = this.IdView = options.idView
+  var HashSumView = this.HashSumView = options.hashSumView
+
+  var countBytes = CountView.BYTES_PER_ELEMENT * n
+  var idBytes = IdView.BYTES_PER_ELEMENT * n
+  var hashSumBytes = HashSumView.BYTES_PER_ELEMENT * n
+
   var arrayBuffer = this.arrayBuffer = options.arrayBuffer
     ? options.arrayBuffer
-    : new ArrayBuffer(countBytes + idBytes)
-  this.counts = new CountView(arrayBuffer, 0, m)
-  this.ids = new IdView(arrayBuffer, countBytes, m)
+    : new ArrayBuffer(countBytes + idBytes + hashSumBytes)
+
+  this.counts = new CountView(arrayBuffer, 0, n)
+  this.ids = new IdView(arrayBuffer, countBytes, n)
+  this.hashSums = new IdView(arrayBuffer, countBytes, n)
 }
 
-function validHashes (hashes) {
-  return Array.isArray(hashes) &&
-    hashes.length !== 0 &&
-    hashes.every(function (element) {
-      return typeof element === 'function'
-    })
+function validHash (hash) {
+  return typeof hash === 'function'
 }
 
-function validM (m) {
-  return Number.isInteger(m) && m > 0
+function validInteger (n) {
+  return Number.isInteger(n) && n > 0
 }
 
 function validCountView (view) {
@@ -51,40 +64,48 @@ function validIdView (view) {
   )
 }
 
-IBF.prototype.insert = function (key) {
+IBF.prototype.recursiveIndexHash = function (times, data) {
+  for (var i = 0; i < times; i++) data = this.keyHash(data)
+  return data % this.n
+}
+
+IBF.prototype.insert = function (id) { this._change(id, 1) }
+
+IBF.prototype.delete = function (id) { this._change(id, -1) }
+
+IBF.prototype._change = function (id, countDelta) {
   var self = this
-  self.hashes.forEach(function (hash) {
-    var digest = hash(key)
-    self.counts[digest] += 1
-    self.ids[digest] = self.ids[digest] ^ digest
+  self.keyHashes.forEach(function (hash) {
+    var key = hash(id)
+    self.counts[key] += countDelta
+    self.ids[key] = self.ids[key] ^ id
+    self.hashSums[key] = self.hashSums[key] ^ self.checkHash(key)
   })
 }
 
-IBF.prototype.delete = function (key) {
+IBF.prototype.has = function (id) {
   var self = this
-  self.hashes.forEach(function (hash) {
-    var digest = hash(key)
-    self.counts[digest] -= 1
-    self.ids[digest] = self.ids[digest] ^ digest
-  })
-}
-
-IBF.prototype.includes = function (key) {
-  var self = this
-  return self.hashes.every(function (hash) {
-    var digest = hash(key)
-    var count = self.counts[digest]
-    return count !== 0
+  return self.keyHashes.every(function (hash) {
+    return self.counts[hash(id)] !== 0
   })
 }
 
 IBF.prototype.pure = function (key) {
   var self = this
   return this.counts.reduce(function (pure, count, offset) {
-    return count === 0
-      ? pure.concat(self.ids[offset])
+    var pureCount = count === 1 || count === -1
+    var id = self.ids[offset]
+    var sumsMatch = self.checkHash(id) === self.hashSums[offset]
+    return (pureCount && sumsMatch)
+      ? pure.concat(result(count, id))
       : pure
   }, [])
+}
+
+function result (count, id) {
+  return count === 1
+    ? {remaining: true, id: id}
+    : {missing: true, id: id}
 }
 
 IBF.prototype.clone = function () {
