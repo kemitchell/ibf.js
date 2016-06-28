@@ -40,7 +40,6 @@ IBF.prototype.remove = function (id) { this._change(id, -1) }
 
 IBF.prototype._change = function (id, countDelta) {
   if (!isArrayBuffer(id)) throw new Error('Argument must be an ArrayBuffer')
-  var n = this.n
   var checkHash = this.checkHash
   var counts = this.counts
   var idSums = this.idSums
@@ -69,8 +68,7 @@ function xor (existingView, withBuffer) {
 IBF.prototype.has = function (id) {
   var counts = this.counts
   return this.keyHashes.every(function (hash) {
-    var key = hash(id)
-    return counts[key] !== 0
+    return counts[hash(id)] !== 0
   })
 }
 
@@ -101,14 +99,14 @@ function equal (view, buffer) {
 // Validation
 
 var optionValidations = {
-  n: isInteger,
+  n: isPositiveInteger,
   checkHash: isHash,
-  keyHashes: isHashes,
-  countView: isCountView,
-  idSumView: isIdView,
-  idSumElements: isInteger,
-  hashSumView: isIdView,
-  hashSumElements: isInteger
+  keyHashes: isArrayOfHashes,
+  countView: isSignedView,
+  idSumView: isUnsignedView,
+  idSumElements: isPositiveInteger,
+  hashSumView: isUnsignedView,
+  hashSumElements: isPositiveInteger
 }
 
 function validateOptions (options) {
@@ -123,15 +121,19 @@ function isHash (hash) {
   return typeof hash === 'function'
 }
 
-function isHashes (hashes) {
-  return Array.isArray(hashes) && hashes.length !== 0 && hashes.every(isHash)
+function isArrayOfHashes (hashes) {
+  return (
+    Array.isArray(hashes) &&
+    hashes.length !== 0 &&
+    hashes.every(isHash)
+  )
 }
 
-function isInteger (n) {
+function isPositiveInteger (n) {
   return Number.isInteger(n) && n > 0
 }
 
-function isCountView (view) {
+function isSignedView (view) {
   return (
     view === Int8Array ||
     view === Int16Array ||
@@ -139,7 +141,7 @@ function isCountView (view) {
   )
 }
 
-function isIdView (view) {
+function isUnsignedView (view) {
   return (
     view === Uint8Array ||
     view === Uint8ClampedArray ||
