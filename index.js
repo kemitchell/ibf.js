@@ -33,7 +33,7 @@ function IBF (options) {
   this.idSums = new IdSumView(arrayBuffer, idSumsOffset, n * idSumElements)
 
   var hashSumsOffset = idSumsOffset + idSumsBytes
-  this.hashSums = new IdSumView(arrayBuffer, hashSumsOffset, n * hashSumElements)
+  this.hashSums = new HashSumView(arrayBuffer, hashSumsOffset, n * hashSumElements)
 }
 
 IBF.prototype.insert = function (id) { this._change(id, 1) }
