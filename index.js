@@ -1,5 +1,3 @@
-var assert = require('assert')
-
 module.exports = IBF
 
 function IBF (options) {
@@ -51,8 +49,6 @@ IBF.prototype._change = function (id, countDelta) {
   var hashSumElements = this.hashSumElements
   this.keyHashes.forEach(function (hash) {
     var key = hash(id)
-    assert(typeof key === 'number', 'key is number')
-    assert(key < n, 'key is number')
     counts[key] += countDelta
     var existingId = idSums.subarray(key, key + idSumElements)
     xor(existingId, id)
@@ -64,9 +60,6 @@ IBF.prototype._change = function (id, countDelta) {
 function xor (existingView, withBuffer) {
   var ViewType = existingView.constructor
   var correspondingView = new ViewType(withBuffer)
-  assert.equal(
-    existingView.byteLength, correspondingView.byteLength,
-    'equal length')
   existingView.forEach(function (existingElement, index) {
     var correspondingElement = correspondingView[index]
     existingView[index] = existingElement ^ correspondingElement
@@ -98,10 +91,8 @@ IBF.prototype.pure = function (key) {
 }
 
 function equal (view, buffer) {
-  assert(isArrayBuffer(buffer), 'buffer is ArrayBuffer')
   var ViewType = view.constructor
   var correspondingView = new ViewType(buffer)
-  assert.equal(view.byteLength, correspondingView.byteLength, 'unequal byte length')
   return view.every(function (element, index) {
     return element === correspondingView[index]
   })
