@@ -5,21 +5,10 @@ module.exports = IBF
 function IBF (options) {
   if (!this instanceof IBF) return new IBF(options)
 
-  var idSumElements = options.idSumElements || 1
-  var hashSumElements = options.hashSumElements || 1
+  options.idSumElements = options.idSumElements || 1
+  options.hashSumElements = options.hashSumElements || 1
 
-  if (!isInteger(options.n)) throw new Error('Invalid n')
-
-  if (!isHash(options.checkHash)) throw new Error('Invalid checkHash')
-  if (!isHashes(options.keyHashes)) throw new Error('Invalid keyHashes')
-
-  if (!isCountView(options.countView)) throw new Error('Invalid countView')
-
-  if (!isIdView(options.idSumView)) throw new Error('Invalid idSumView')
-  if (!isInteger(idSumElements)) throw new Error('Invalid idSumElements')
-
-  if (!isIdView(options.hashSumView)) throw new Error('Invalid hashSumView')
-  if (!isInteger(hashSumElements)) throw new Error('Invalid hashSumElements')
+  validateOptions(options)
 
   this.checkHash = options.checkHash
   this.keyHashes = options.keyHashes
@@ -28,9 +17,9 @@ function IBF (options) {
 
   var CountView = this.CountView = options.countView
   var IdSumView = this.IdSumView = options.idSumView
-  this.idSumElements = idSumElements
+  var idSumElements = this.idSumElements = options.idSumElements
   var HashSumView = this.HashSumView = options.hashSumView
-  this.hashSumElements = hashSumElements
+  var hashSumElements = this.hashSumElements = options.hashSumElements
 
   var countBytes = CountView.BYTES_PER_ELEMENT * n
   var idSumBytes = IdSumView.BYTES_PER_ELEMENT * n * idSumElements
@@ -129,6 +118,25 @@ IBF.prototype.clone = function () {
 }
 
 // Validation
+
+var optionValidations = {
+  n: isInteger,
+  checkHash: isHash,
+  keyHashes: isHashes,
+  countView: isCountView,
+  idSumView: isIdView,
+  idSumElements: isInteger,
+  hashSumView: isIdView,
+  hashSumElements: isInteger
+}
+
+function validateOptions (options) {
+  Object.keys(optionValidations).forEach(function (option) {
+    if (!optionValidations[option](options[option])) {
+      throw new Error('Invalid ' + option)
+    }
+  })
+}
 
 function isHash (hash) {
   return typeof hash === 'function'
