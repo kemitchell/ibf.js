@@ -1,0 +1,8 @@
+{
+  "name": "ibf",
+  "version": "0.0.0",
+  "description": "invertible bloom filter using typed arrays",
+  "author": "Kyle E. Mitchell <kyle@kemitchell.com> (https://kemitchell.com/)",
+  "repository": "kemitchell/ibf.js",
+  "license": "MIT"
+}
