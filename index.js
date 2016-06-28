@@ -28,13 +28,11 @@ function IBF (options) {
 
   var arrayBuffer
   if (options.arrayBuffer) {
-    if (options.arrayBuffer.byteLength !== totalBytes) {
+    arrayBuffer = options.arrayBuffer
+    if (arrayBuffer.byteLength !== totalBytes) {
       throw new Error('Wrong size arrayBuffer')
     }
-    arrayBuffer = options.arrayBuffer
-  } else {
-    arrayBuffer = new ArrayBuffer(totalBytes)
-  }
+  } else arrayBuffer = new ArrayBuffer(totalBytes)
   this.arrayBuffer = arrayBuffer
 
   this.counts = new CountView(arrayBuffer, 0, n)
