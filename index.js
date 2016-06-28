@@ -24,8 +24,18 @@ function IBF (options) {
   var countsBytes = CountView.BYTES_PER_ELEMENT * n
   var idSumsBytes = IdSumView.BYTES_PER_ELEMENT * idSumElements * n
   var hashSumsBytes = HashSumView.BYTES_PER_ELEMENT * hashSumElements * n
+  var totalBytes = countsBytes + idSumsBytes + hashSumsBytes
 
-  var arrayBuffer = new ArrayBuffer(countsBytes + idSumsBytes + hashSumsBytes)
+  var arrayBuffer
+  if (options.arrayBuffer) {
+    if (options.arrayBuffer.byteLength !== totalBytes) {
+      throw new Error('Wrong size arrayBuffer')
+    }
+    arrayBuffer = options.arrayBuffer
+  } else {
+    arrayBuffer = new ArrayBuffer(totalBytes)
+  }
+  this.arrayBuffer = arrayBuffer
 
   this.counts = new CountView(arrayBuffer, 0, n)
 
@@ -111,6 +121,9 @@ function makeCorresponding (view, buffer) {
 
 var optionValidations = {
   n: isPositiveInteger,
+  arrayBuffer: function (buffer) {
+    return buffer === undefined || isArrayBuffer(buffer)
+  },
   checkHash: isHash,
   keyHashes: isArrayOfHashes,
   countView: isSignedView,

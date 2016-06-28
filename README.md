@@ -11,46 +11,56 @@ The example in this `README` is run as the package's test suite.
 
 ## Configuration
 
+### Hash Functions
+
 ```javascript
-var IBF = require('ibf')
 var TextDecoder = require('text-encoding').TextDecoder
 var murmur = require('murmurhash').v3
-
-var n = 1000
 
 function bufferToString (buffer) {
   return new TextDecoder('utf8').decode(new Uint8Array(buffer))
 }
 
+function binaryMurmur (buffer) {
+  var inputString = bufferToString(buffer)
+  var digestNumber = murmur(inputString)
+  var digestBuffer = new ArrayBuffer(4)
+  var digestView = new Uint32Array(digestBuffer)
+  digestView[0] = digestNumber
+  return digestBuffer
+}
+
+function singleMurmur (buffer) {
+  return murmur(bufferToString(buffer)) % n
+}
+
+function doubleMurmur (buffer) {
+  return murmur(
+    murmur(bufferToString(buffer)).toString()
+  ) % n
+}
+
+function tripleMurmur (buffer) {
+  return murmur(
+    murmur(
+      murmur(bufferToString(buffer)).toString()
+    ).toString()
+  ) % n
+}
+```
+
+### Initialization
+
+```javascript
+var IBF = require('ibf')
+
+var n = 1000
+
 var filter = new IBF({
   n: n,
 
-  checkHash: function binaryMurmur (buffer) {
-    var inputString = bufferToString(buffer)
-    var digestNumber = murmur(inputString)
-    var digestBuffer = new ArrayBuffer(4)
-    var digestView = new Uint32Array(digestBuffer)
-    digestView[0] = digestNumber
-    return digestBuffer
-  },
-
-  keyHashes: [
-    function (buffer) {
-      return murmur(bufferToString(buffer)) % n
-    },
-    function (buffer) {
-      return murmur(
-        murmur(bufferToString(buffer)).toString()
-      ) % n
-    },
-    function (buffer) {
-      return murmur(
-        murmur(
-          murmur(bufferToString(buffer)).toString()
-        ).toString()
-      ) % n
-    }
-  ],
+  checkHash: binaryMurmur,
+  keyHashes: [singleMurmur, doubleMurmur, tripleMurmur],
 
   // Count hashes with 32-bit integers.
   countView: Int32Array,
@@ -115,4 +125,23 @@ assert(pure.some(function (element) {
 function toHex (buffer) {
   return new Buffer(buffer).toString('hex')
 }
+```
+
+## Cloning
+
+```javascript
+var clone = new IBF({
+  arrayBuffer: filter.arrayBuffer.slice(),
+  n: n,
+  checkHash: binaryMurmur,
+  keyHashes: [singleMurmur, doubleMurmur, tripleMurmur],
+  countView: Int32Array,
+  idSumElements: 8,
+  idSumView: Uint32Array,
+  hashSumElements: 1,
+  hashSumView: Uint32Array
+})
+
+assert(clone.has(keys.a), 'clone has A')
+assert(!clone.has(keys.d), 'clone does not have D')
 ```
