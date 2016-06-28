@@ -107,16 +107,6 @@ function equal (view, buffer) {
   })
 }
 
-IBF.prototype.clone = function () {
-  return new IBF({
-    hashes: this.hashes,
-    m: this.m,
-    countView: this.CountView,
-    idView: this.IdView,
-    arrayBuffer: this.arrayBuffer.slice()
-  })
-}
-
 // Validation
 
 var optionValidations = {
