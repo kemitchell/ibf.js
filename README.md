@@ -7,7 +7,7 @@ Implemented with typed arrays.  No external dependencies.
 
 The example in this `README` is run as the package's test suite.
 
-# Configuration
+## Configuration
 
 ```javascript
 var IBF = require('./')
