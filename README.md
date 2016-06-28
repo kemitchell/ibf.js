@@ -11,13 +11,39 @@ The example in this `README` is run as the package's test suite.
 
 ## Configuration
 
-### Hash Functions
+### Initialization
+
+```javascript
+var IBF = require('ibf')
+
+var n = 1000
+
+var options = {
+  n: n,
+
+  checkHash: binaryMurmur,
+  keyHashes: [singleMurmur, doubleMurmur, tripleMurmur],
+
+  // Count hashes with 32-bit integers.
+  countView: Int32Array,
+
+  // Keys will be SHA-2 digests of 8 * 32 = 256 bits.
+  idSumElements: 8,
+  idSumView: Uint32Array,
+
+  // Internal hashes will be 32-bit murmur digests.
+  hashSumElements: 1,
+  hashSumView: Uint32Array
+}
+
+var filter = new IBF(options)
+```
+
+### Example Hash Functions
 
 ```javascript
 var TextDecoder = require('text-encoding').TextDecoder
 var murmur = require('murmurhash').v3
-
-var n = 1000
 
 function bufferToString (buffer) {
   return new TextDecoder('utf8').decode(new Uint8Array(buffer))
@@ -49,32 +75,6 @@ function tripleMurmur (buffer) {
     ).toString()
   ) % n
 }
-```
-
-### Initialization
-
-```javascript
-var IBF = require('ibf')
-
-var options = {
-  n: n,
-
-  checkHash: binaryMurmur,
-  keyHashes: [singleMurmur, doubleMurmur, tripleMurmur],
-
-  // Count hashes with 32-bit integers.
-  countView: Int32Array,
-
-  // Keys will be SHA-2 digests of 8 * 32 = 256 bits.
-  idSumElements: 8,
-  idSumView: Uint32Array,
-
-  // Internal hashes will be 32-bit murmur digests.
-  hashSumElements: 1,
-  hashSumView: Uint32Array
-}
-
-var filter = new IBF(options)
 ```
 
 ## Inserting, Removing, and Querying
