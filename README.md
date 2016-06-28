@@ -93,7 +93,12 @@ var keys = {}
 
 filter.insert(keys.a)
 assert(filter.has(keys.a), 'has A')
+assert(filter.additional(keys.a), 'A is additional')
+assert(!filter.missing(keys.a), 'A is not missing')
+
 assert(!filter.has(keys.b), 'does not have B')
+assert(!filter.additional(keys.b), 'B is not additional')
+assert(!filter.missing(keys.b), 'B is not missing')
 ```
 
 ## Removing
