@@ -5,7 +5,7 @@ Invertible Bloom Filter as described by Eppstein et al. in
 
 Implemented with typed arrays.  No external dependencies.
 
-The examples in this `README` are run as the package's test suite.
+The example in this `README` is run as the package's test suite.
 
 # Configuration
 
