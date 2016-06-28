@@ -76,7 +76,7 @@ var keys = {}
   keys[example] = crypto.createHash('sha256')
     .update('this is ' + example)
     .digest()
-    .buffer
+    .buffer // Keys are ArrayBuffers.
 })
 
 filter.insert(keys.a)
