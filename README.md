@@ -3,7 +3,9 @@ Invertible Bloom Filter as described by Eppstein et al. in
 
 [1]: https://www.ics.uci.edu/~eppstein/pubs/EppGooUye-SIGCOMM-11.pdf
 
-Implemented with typed arrays.  No external dependencies.
+Implemented with typed arrays.  No external dependencies. [standard][2] style.
+
+[2]: https://www.npmjs.com/package/standard
 
 The example in this `README` is run as the package's test suite.
 
