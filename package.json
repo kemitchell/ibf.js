@@ -5,6 +5,9 @@
   "author": "Kyle E. Mitchell <kyle@kemitchell.com> (https://kemitchell.com/)",
   "repository": "kemitchell/ibf.js",
   "license": "MIT",
+  "files": [
+    "index.js"
+  ],
   "devDependencies": {
     "defence-cli": "^2.0.0",
     "murmurhash": "0.0.2",
