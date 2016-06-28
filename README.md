@@ -12,7 +12,7 @@ The example in this `README` is run as the package's test suite.
 ## Configuration
 
 ```javascript
-var IBF = require('./')
+var IBF = require('ibf')
 var TextDecoder = require('text-encoding').TextDecoder
 var murmur = require('murmurhash').v3
 
