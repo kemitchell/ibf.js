@@ -16,18 +16,23 @@ function IBF (options) {
   var HashSumView = this.HashSumView = options.hashSumView
   var hashSumElements = this.hashSumElements = options.hashSumElements
 
-  var countBytes = CountView.BYTES_PER_ELEMENT * n
-  var idSumBytes = IdSumView.BYTES_PER_ELEMENT * n * idSumElements
-  var hashSumBytes = HashSumView.BYTES_PER_ELEMENT * n * hashSumElements
+  // Memory Layout:
+  //  [ Counts ] then
+  //  [ idSums ] then
+  //  [ hashSums ]
 
-  var arrayBuffer = this.arrayBuffer = options.arrayBuffer
-    ? options.arrayBuffer
-    : new ArrayBuffer(countBytes + idSumBytes + hashSumBytes)
+  var countsBytes = CountView.BYTES_PER_ELEMENT * n
+  var idSumsBytes = IdSumView.BYTES_PER_ELEMENT * idSumElements * n
+  var hashSumsBytes = HashSumView.BYTES_PER_ELEMENT * hashSumElements * n
+
+  var arrayBuffer = new ArrayBuffer(countsBytes + idSumsBytes + hashSumsBytes)
 
   this.counts = new CountView(arrayBuffer, 0, n)
-  var idSumsOffset = countBytes
+
+  var idSumsOffset = countsBytes
   this.idSums = new IdSumView(arrayBuffer, idSumsOffset, n * idSumElements)
-  var hashSumsOffset = idSumsOffset + idSumBytes
+
+  var hashSumsOffset = idSumsOffset + idSumsBytes
   this.hashSums = new IdSumView(arrayBuffer, hashSumsOffset, n * hashSumElements)
 }
 
