@@ -8,22 +8,19 @@ function IBF (options) {
   this.checkHash = options.checkHash
   this.keyHashes = options.keyHashes
 
-  var n = this.n = options.n
+  var cellCount = this.cellCount = options.cellCount
 
   var CountView = this.CountView = options.countView
+  var countsBytes = CountView.BYTES_PER_ELEMENT * cellCount
+
   var IdSumView = this.IdSumView = options.idSumView
   var idSumElements = this.idSumElements = options.idSumElements
+  var idSumsBytes = IdSumView.BYTES_PER_ELEMENT * idSumElements * cellCount
+
   var HashSumView = this.HashSumView = options.hashSumView
   var hashSumElements = this.hashSumElements = options.hashSumElements
+  var hashSumsBytes = HashSumView.BYTES_PER_ELEMENT * hashSumElements * cellCount
 
-  // Memory Layout:
-  //  [ Counts ] then
-  //  [ idSums ] then
-  //  [ hashSums ]
-
-  var countsBytes = CountView.BYTES_PER_ELEMENT * n
-  var idSumsBytes = IdSumView.BYTES_PER_ELEMENT * idSumElements * n
-  var hashSumsBytes = HashSumView.BYTES_PER_ELEMENT * hashSumElements * n
   var totalBytes = countsBytes + idSumsBytes + hashSumsBytes
 
   var arrayBuffer
@@ -35,89 +32,148 @@ function IBF (options) {
   } else arrayBuffer = new ArrayBuffer(totalBytes)
   this.arrayBuffer = arrayBuffer
 
-  this.counts = new CountView(arrayBuffer, 0, n)
+  var offset = 0
+  this.counts = new CountView(arrayBuffer, offset, cellCount)
 
-  var idSumsOffset = countsBytes
-  this.idSums = new IdSumView(arrayBuffer, idSumsOffset, n * idSumElements)
+  offset += countsBytes
+  this.idSums = new IdSumView(arrayBuffer, offset, cellCount * idSumElements)
 
-  var hashSumsOffset = idSumsOffset + idSumsBytes
-  this.hashSums = new HashSumView(arrayBuffer, hashSumsOffset, n * hashSumElements)
+  offset += idSumsBytes
+  this.hashSums = new HashSumView(arrayBuffer, offset, cellCount * hashSumElements)
 }
 
-IBF.prototype.insert = function (id) { this._change(id, 1) }
-
-IBF.prototype.remove = function (id) { this._change(id, -1) }
-
-IBF.prototype._change = function (id, countDelta) {
-  if (!isArrayBuffer(id)) throw new Error('Argument must be an ArrayBuffer')
-  var checkHash = this.checkHash
-  var counts = this.counts
-  var idSums = this.idSums
-  var idSumElements = this.idSumElements
-  var hashSums = this.hashSums
-  var hashSumElements = this.hashSumElements
-  this.keyHashes.forEach(function (hash) {
-    var key = hash(id)
-    counts[key] += countDelta
-    var existingId = idSums.subarray(key, key + idSumElements)
-    xor(existingId, id)
-    var existingHashSum = hashSums.subarray(key, key + hashSumElements)
-    xor(existingHashSum, checkHash(id))
+IBF.prototype.clone = function () {
+  return new IBF({
+    checkHash: this.checkHash,
+    keyHashes: this.keyHashes,
+    cellCount: this.cellCount,
+    countView: this.CountView,
+    idSumView: this.IdSumView,
+    idSumElements: this.idSumElements,
+    hashSumView: this.HashSumView,
+    hashSumElements: this.hashSumElements,
+    arrayBuffer: this.arrayBuffer.slice(0)
   })
+}
+
+IBF.prototype.insert = function (id) { change(this, id, 1) }
+
+IBF.prototype.remove = function (id) { change(this, id, -1) }
+
+function change (filter, id, deltaCount) {
+  if (!isArrayBuffer(id)) throw new Error('Argument must be an ArrayBuffer')
+  var checkHash = filter.checkHash
+  filter.keyHashes.forEach(function (hash) {
+    changeAtIndex(filter, hash(id), id, checkHash(id), deltaCount)
+  })
+}
+
+function changeAtIndex (filter, index, id, hash, deltaCount) {
+  filter.counts[index] += deltaCount
+  var existingId = filter.idSums.subarray(index, index + filter.idSumElements)
+  xor(existingId, id)
+  var existingHashSum = filter.hashSums.subarray(index, index + filter.hashSumElements)
+  xor(existingHashSum, hash)
 }
 
 IBF.prototype.has = function (id) {
-  return everyHash.call(this, id, function (count) {
-    return count !== 0
-  })
+  return everyHash(this, id, function (count) { return count !== 0 })
 }
 
 IBF.prototype.additional = function (id) {
-  return everyHash.call(this, id, function (count) {
-    return count > 0
-  })
+  return everyHash(this, id, function (count) { return count > 0 })
 }
 
 IBF.prototype.missing = function (id) {
-  return everyHash.call(this, id, function (count) {
-    return count < 0
-  })
+  return everyHash(this, id, function (count) { return count < 0 })
 }
 
-function everyHash (id, predicate) {
-  var counts = this.counts
-  return this.keyHashes.every(function (hash) {
+function everyHash (filter, id, predicate) {
+  var counts = filter.counts
+  return filter.keyHashes.every(function (hash) {
     return predicate(counts[hash(id)])
   })
 }
 
-IBF.prototype.pure = function (key) {
-  var checkHash = this.checkHash
-  var hashSums = this.hashSums
-  var hashSumElements = this.hashSumElements
-  var idSums = this.idSums
-  var idSumElements = this.idSumElements
-  return this.counts.reduce(function (pure, count, offset) {
-    if (count !== 1 && count !== -1) return pure
-    var idSum = idSums.slice(offset, offset + idSumElements)
-    var hashOfIdSum = checkHash(idSum.buffer)
-    var hashSum = hashSums.subarray(offset, offset + hashSumElements)
-    if (!equal(hashSum, hashOfIdSum)) return pure
-    var alreadyFound = pure.some(function (element) {
-      return equal(idSum, element.id)
-    })
-    if (alreadyFound) return pure
-    return pure.concat(record(count, idSum.buffer))
-  }, [])
+IBF.prototype.subtract = function (otherIBF) {
+  var thisIBF = this
+  var cellCount = thisIBF.cellCount
+  if (cellCount !== otherIBF.cellCount) {
+    throw new Error('Different cellCount values')
+  }
+  otherIBF.counts.forEach(function (count, index) {
+    if (count === 0) return
+    var id = idSumOf(otherIBF, index).slice().buffer
+    var hash = thisIBF.checkHash(id)
+    changeAtIndex(thisIBF, index, id, hash, -count)
+  })
 }
 
-function record (count, id) {
-  return count === 1
-    ? {additional: true, id: id}
-    : {missing: true, id: id}
+IBF.prototype.decode = function () {
+  var self = this
+  var additional = []
+  var missing = []
+
+  var cellCount = this.cellCount
+
+  var pureList = findPureCells()
+  while (pureList.length !== 0) {
+    pureList.forEach(function (pureIndex) {
+      if (!isPure(self, pureIndex)) return
+      var id = idSumOf(self, pureIndex).slice().buffer
+      var count = self.counts[pureIndex]
+      if (count === 1) {
+        additional.push({ id: id })
+        self.remove(id)
+      } else {
+        missing.push({ id: id })
+        self.insert(id)
+      }
+    })
+    pureList = findPureCells()
+  }
+
+  function findPureCells () {
+    var pures = []
+    var length = self.counts.length
+    for (var index = 0; index < length; index++) {
+      if (isPure(self, index)) pures.push(index)
+    }
+    return pures
+  }
+
+  for (var index = 0; index < cellCount; index++) {
+    if (self.counts[index] !== 0) return false
+    if (!isZero(idSumOf(self, index))) return false
+    if (!isZero(hashSumOf(self, index))) return false
+  }
+
+  return {additional: additional, missing: missing}
+}
+
+function isPure (filter, index) {
+  var count = filter.counts[index]
+  if (count !== 1 && count !== -1) return false
+  var idSum = idSumOf(filter, index).slice().buffer
+  var hashOfIdSum = filter.checkHash(idSum)
+  var hashSum = hashSumOf(filter, index)
+  if (!equal(hashSum, hashOfIdSum)) return false
+  return true
 }
 
 // Helpers
+
+function idSumOf (filter, index) {
+  return filter.idSums.subarray(index, index + filter.idSumElements)
+}
+
+function hashSumOf (filter, index, copy) {
+  return filter.hashSums.subarray(index, index + filter.hashSumElements)
+}
+
+function isZero (view) {
+  return view.every(function (element) { return element === 0 })
+}
 
 function xor (view, buffer) {
   var correspondingView = makeCorresponding(view, buffer)
@@ -142,10 +198,8 @@ function makeCorresponding (view, buffer) {
 // Validation
 
 var optionValidations = {
-  n: isPositiveInteger,
-  arrayBuffer: function (buffer) {
-    return buffer === undefined || isArrayBuffer(buffer)
-  },
+  cellCount: isPositiveInteger,
+  arrayBuffer: optional(isArrayBuffer),
   checkHash: isHash,
   keyHashes: isArrayOfHashes,
   countView: isSignedView,
@@ -161,6 +215,12 @@ function validateOptions (options) {
       throw new Error('Invalid ' + option)
     }
   })
+}
+
+function optional (cb) {
+  return function (value) {
+    return value === undefined || cb(value)
+  }
 }
 
 function isHash (hash) {

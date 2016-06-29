@@ -16,10 +16,10 @@ The example in this `README` is run as the package's test suite.
 ```javascript
 var IBF = require('ibf')
 
-var n = 1000
+var cellCount = 100
 
 var options = {
-  n: n,
+  cellCount: cellCount,
 
   checkHash: binaryMurmur,
   keyHashes: [singleMurmur, doubleMurmur, tripleMurmur],
@@ -59,13 +59,13 @@ function binaryMurmur (buffer) {
 }
 
 function singleMurmur (buffer) {
-  return murmur(bufferToString(buffer)) % n
+  return murmur(bufferToString(buffer)) % cellCount
 }
 
 function doubleMurmur (buffer) {
   return murmur(
     murmur(bufferToString(buffer)).toString()
-  ) % n
+  ) % cellCount
 }
 
 function tripleMurmur (buffer) {
@@ -73,7 +73,7 @@ function tripleMurmur (buffer) {
     murmur(
       murmur(bufferToString(buffer)).toString()
     ).toString()
-  ) % n
+  ) % cellCount
 }
 ```
 
@@ -107,36 +107,51 @@ filter.remove(keys.c)
 assert(!filter.has(keys.c), 'no longer has C')
 ```
 
-## Pure Checking
-
-```javascript
-filter.remove(keys.d)
-assert(filter.has(keys.d), 'has D')
-assert(filter.missing(keys.d), 'missing D')
-
-var pure = filter.pure()
-
-assert.equal(pure.length, 2)
-
-assert(pure.some(function (element) {
-  return element.additional && toHex(element.id) == toHex(keys.a)
-}), 'shows has A')
-
-assert(pure.some(function (element) {
-  return element.missing && toHex(element.id) == toHex(keys.d)
-}), 'shows missing D')
-
-function toHex (buffer) {
-  return new Buffer(buffer).toString('hex')
-}
-```
-
 ## Cloning
 
 ```javascript
-options.arrayBuffer = filter.arrayBuffer.slice()
-var clone = new IBF(options)
+var clone = filter.clone()
+
+clone.remove(keys.d)
 
 assert(clone.has(keys.a), 'clone has A')
 assert(clone.missing(keys.d), 'clone missing D')
+```
+
+## Subtraction and Decoding
+
+```javascript
+var hasABC = new IBF(options)
+hasABC.insert(keys.a)
+hasABC.insert(keys.b)
+hasABC.insert(keys.c)
+
+var hasCD = new IBF(options)
+hasCD.insert(keys.c)
+hasCD.insert(keys.d)
+
+var difference = hasABC.clone()
+difference.subtract(hasCD)
+
+var decoded = difference.decode()
+
+assert(decoded !== false)
+
+assert.equal(decoded.additional.length, 2)
+
+function toHex (x) { return new Buffer(x).toString('hex') }
+
+assert(decoded.additional.some(function (element) {
+  return toHex(element.id) === toHex(keys.a)
+}), 'additional A')
+
+assert(decoded.additional.some(function (element) {
+  return toHex(element.id) === toHex(keys.b)
+}), 'additional B')
+
+assert.equal(decoded.missing.length, 1)
+
+assert(decoded.missing.some(function (element) {
+  return toHex(element.id) === toHex(keys.d)
+}), 'missing D')
 ```
