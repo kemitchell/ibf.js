@@ -16,14 +16,27 @@ The example in this `README` is run as the package's test suite.
 ```javascript
 var IBF = require('ibf')
 var assert = require('assert')
+var xxh = require('xxhashjs').h32
 
 var cellCount = 100
+
+var seeds = [0x0000, 0xAAAA, 0xFFFF]
 
 var options = {
   cellCount: cellCount,
 
-  checkHash: binaryMurmur,
-  keyHashes: [singleMurmur, doubleMurmur, tripleMurmur],
+  checkHash: function(idBuffer) {
+    var digest = new xxh(idBuffer, 0x1234)
+    var digestBuffer = new ArrayBuffer(4)
+    new Uint32Array(digestBuffer)[0] = digest
+    return digestBuffer
+  },
+
+  keyHashes: seeds.map(function (seed) {
+    return function(id) {
+      return xxh(id, seed) % cellCount
+    }
+  }),
 
   // Count hashes with 32-bit integers.
   countView: Int32Array,
@@ -40,44 +53,6 @@ var options = {
 var filter = new IBF(options)
 
 assert.equal(filter.arrayBuffer.byteLength, 4000)
-```
-
-### Example Hash Functions
-
-```javascript
-var TextDecoder = require('text-encoding').TextDecoder
-var murmur = require('murmurhash').v3
-
-function bufferToString (buffer) {
-  return new TextDecoder('utf8').decode(new Uint8Array(buffer))
-}
-
-function binaryMurmur (buffer) {
-  var inputString = bufferToString(buffer)
-  var digestNumber = murmur(inputString)
-  var digestBuffer = new ArrayBuffer(4)
-  var digestView = new Uint32Array(digestBuffer)
-  digestView[0] = digestNumber
-  return digestBuffer
-}
-
-function singleMurmur (buffer) {
-  return murmur(bufferToString(buffer)) % cellCount
-}
-
-function doubleMurmur (buffer) {
-  return murmur(
-    murmur(bufferToString(buffer)).toString()
-  ) % cellCount
-}
-
-function tripleMurmur (buffer) {
-  return murmur(
-    murmur(
-      murmur(bufferToString(buffer)).toString()
-    ).toString()
-  ) % cellCount
-}
 ```
 
 ## Inserting, Removing, and Querying
