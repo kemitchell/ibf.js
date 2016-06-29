@@ -15,6 +15,7 @@ The example in this `README` is run as the package's test suite.
 
 ```javascript
 var IBF = require('ibf')
+var assert = require('assert')
 
 var cellCount = 100
 
@@ -37,6 +38,8 @@ var options = {
 }
 
 var filter = new IBF(options)
+
+assert.equal(filter.arrayBuffer.byteLength, 4000)
 ```
 
 ### Example Hash Functions
@@ -80,7 +83,6 @@ function tripleMurmur (buffer) {
 ## Inserting, Removing, and Querying
 
 ```javascript
-var assert = require('assert')
 var crypto = require('crypto')
 
 var keys = {}

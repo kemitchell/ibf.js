@@ -21,15 +21,15 @@ function IBF (options) {
   var hashSumElements = this.hashSumElements = options.hashSumElements
   var hashSumsBytes = HashSumView.BYTES_PER_ELEMENT * hashSumElements * cellCount
 
-  var totalBytes = countsBytes + idSumsBytes + hashSumsBytes
+  var byteLength = countsBytes + idSumsBytes + hashSumsBytes
 
   var arrayBuffer
   if (options.arrayBuffer) {
     arrayBuffer = options.arrayBuffer
-    if (arrayBuffer.byteLength !== totalBytes) {
+    if (arrayBuffer.byteLength !== byteLength) {
       throw new Error('Wrong size arrayBuffer')
     }
-  } else arrayBuffer = new ArrayBuffer(totalBytes)
+  } else arrayBuffer = new ArrayBuffer(byteLength)
   this.arrayBuffer = arrayBuffer
 
   var offset = 0
