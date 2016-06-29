@@ -16,6 +16,8 @@
   },
   "scripts": {
     "test": "defence README.md | replace-require-self | node && echo 'All tests passed.'",
-    "lint": "standard"
+    "lint": "npm run lint:code && npm run lint:readme",
+    "lint:code": "standard",
+    "lint:readme": "! defence README.md | standard --stdin --verbose 2>/dev/null | grep -F -v 'no-multiple-empty-lines' | grep -F -v 'standardjs.com'"
   }
 }

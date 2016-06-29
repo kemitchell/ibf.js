@@ -25,15 +25,15 @@ var seeds = [0x0000, 0xAAAA, 0xFFFF]
 var options = {
   cellCount: cellCount,
 
-  checkHash: function(idBuffer) {
-    var digest = new xxh(idBuffer, 0x1234)
+  checkHash: function (idBuffer) {
+    var digest = xxh(idBuffer, 0x1234)
     var digestBuffer = new ArrayBuffer(4)
     new Uint32Array(digestBuffer)[0] = digest
     return digestBuffer
   },
 
   keyHashes: seeds.map(function (seed) {
-    return function(id) {
+    return function (id) {
       return xxh(id, seed) % cellCount
     }
   }),
