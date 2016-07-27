@@ -1,7 +1,7 @@
 module.exports = IBF
 
 function IBF (options) {
-  if (!this instanceof IBF) return new IBF(options)
+  if (!(this instanceof IBF)) return new IBF(options)
 
   validateOptions(options)
 
