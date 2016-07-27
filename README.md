@@ -53,6 +53,10 @@ var options = {
 var filter = new IBF(options)
 
 assert.equal(filter.arrayBuffer.byteLength, 4000)
+
+assert.throws(function () {
+  IBF({})
+})
 ```
 
 ## Inserting, Removing, and Querying
