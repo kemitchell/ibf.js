@@ -137,10 +137,10 @@ IBF.prototype.decode = function () {
       var id = idSumOf(self, pureIndex).slice().buffer
       var count = self.counts[pureIndex]
       if (count === 1) {
-        additional.push({ id: id })
+        additional.push({id: id})
         self.remove(id)
       } else {
-        missing.push({ id: id })
+        missing.push({id: id})
         self.insert(id)
       }
     })
