@@ -10,11 +10,14 @@
   ],
   "devDependencies": {
     "defence-cli": "^2.0.0",
+    "istanbul": "^0.4.4",
     "replace-require-self": "^1.1.1",
     "standard": "^7.1.2",
     "xxhashjs": "^0.2.1"
   },
   "scripts": {
+    "precoverage": "defence README.md | replace-require-self > test.js && istanbul cover -- test.js ; rm -f test.js",
+    "coverage": "istanbul check-coverage --branches 100 --functions 100 --statements 100 --lines 100",
     "test": "defence README.md | replace-require-self | node && echo 'All tests passed.'",
     "lint": "npm run lint:code && npm run lint:readme",
     "lint:code": "standard",
