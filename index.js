@@ -15,11 +15,15 @@ function IBF (options) {
 
   var IdSumView = this.IdSumView = options.idSumView
   var idSumElements = this.idSumElements = options.idSumElements
-  var idSumsBytes = IdSumView.BYTES_PER_ELEMENT * idSumElements * cellCount
+  var idSumsBytes = (
+    IdSumView.BYTES_PER_ELEMENT * idSumElements * cellCount
+  )
 
   var HashSumView = this.HashSumView = options.hashSumView
   var hashSumElements = this.hashSumElements = options.hashSumElements
-  var hashSumsBytes = HashSumView.BYTES_PER_ELEMENT * hashSumElements * cellCount
+  var hashSumsBytes = (
+    HashSumView.BYTES_PER_ELEMENT * hashSumElements * cellCount
+  )
 
   var byteLength = countsBytes + idSumsBytes + hashSumsBytes
 
@@ -36,10 +40,14 @@ function IBF (options) {
   this.counts = new CountView(arrayBuffer, offset, cellCount)
 
   offset += countsBytes
-  this.idSums = new IdSumView(arrayBuffer, offset, cellCount * idSumElements)
+  this.idSums = new IdSumView(
+    arrayBuffer, offset, cellCount * idSumElements
+  )
 
   offset += idSumsBytes
-  this.hashSums = new HashSumView(arrayBuffer, offset, cellCount * hashSumElements)
+  this.hashSums = new HashSumView(
+    arrayBuffer, offset, cellCount * hashSumElements
+  )
 }
 
 IBF.prototype.clone = function () {
@@ -61,7 +69,9 @@ IBF.prototype.insert = function (id) { change(this, id, 1) }
 IBF.prototype.remove = function (id) { change(this, id, -1) }
 
 function change (filter, id, deltaCount) {
-  if (!isArrayBuffer(id)) throw new Error('Argument must be an ArrayBuffer')
+  if (!isArrayBuffer(id)) {
+    throw new Error('Argument must be an ArrayBuffer')
+  }
   var checkHash = filter.checkHash
   filter.keyHashes.forEach(function (hash) {
     changeAtIndex(filter, hash(id), id, checkHash(id), deltaCount)
@@ -70,9 +80,13 @@ function change (filter, id, deltaCount) {
 
 function changeAtIndex (filter, index, id, hash, deltaCount) {
   filter.counts[index] += deltaCount
-  var existingId = filter.idSums.subarray(index, index + filter.idSumElements)
+  var existingId = filter.idSums.subarray(
+    index, index + filter.idSumElements
+  )
   xor(existingId, id)
-  var existingHashSum = filter.hashSums.subarray(index, index + filter.hashSumElements)
+  var existingHashSum = filter.hashSums.subarray(
+    index, index + filter.hashSumElements
+  )
   xor(existingHashSum, hash)
 }
 
