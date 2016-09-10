@@ -288,7 +288,10 @@ function isArrayOfHashes (hashes) {
 }
 
 function isPositiveInteger (n) {
-  return Number.isInteger(n) && n > 0
+  return (
+    Number.isInteger(n) &&
+    n > 0
+  )
 }
 
 function isSignedView (view) {
