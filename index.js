@@ -30,6 +30,7 @@ function IBF (options) {
   var arrayBuffer
   if (options.arrayBuffer) {
     arrayBuffer = options.arrayBuffer
+    /* istanbul ignore if */
     if (arrayBuffer.byteLength !== byteLength) {
       throw new Error('Wrong size arrayBuffer')
     }
@@ -69,6 +70,7 @@ IBF.prototype.insert = function (id) { change(this, id, 1) }
 IBF.prototype.remove = function (id) { change(this, id, -1) }
 
 function change (filter, id, deltaCount) {
+  /* istanbul ignore if */
   if (!isArrayBuffer(id)) {
     throw new Error('Argument must be an ArrayBuffer')
   }
@@ -112,6 +114,7 @@ function everyHash (filter, id, predicate) {
 IBF.prototype.subtract = function (otherIBF) {
   var thisIBF = this
   var cellCount = thisIBF.cellCount
+  /* istanbul ignore if */
   if (cellCount !== otherIBF.cellCount) {
     throw new Error('Different cellCount values')
   }
