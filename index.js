@@ -152,6 +152,7 @@ IBF.prototype.decode = function () {
   var pureList = findPureCells()
   while (pureList.length !== 0) {
     pureList.forEach(function (pureIndex) {
+      /* istanbul ignore if */
       if (!isPure(self, pureIndex)) {
         return
       }
@@ -180,12 +181,15 @@ IBF.prototype.decode = function () {
   }
 
   for (var index = 0; index < cellCount; index++) {
+    /* istanbul ignore if */
     if (self.counts[index] !== 0) {
       return false
     }
+    /* istanbul ignore if */
     if (!isZero(idSumOf(self, index))) {
       return false
     }
+    /* istanbul ignore if */
     if (!isZero(hashSumOf(self, index))) {
       return false
     }
