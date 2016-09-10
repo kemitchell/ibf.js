@@ -1,7 +1,9 @@
 module.exports = IBF
 
 function IBF (options) {
-  if (!(this instanceof IBF)) return new IBF(options)
+  if (!(this instanceof IBF)) {
+    return new IBF(options)
+  }
 
   validateOptions(options)
 
@@ -34,7 +36,9 @@ function IBF (options) {
     if (arrayBuffer.byteLength !== byteLength) {
       throw new Error('Wrong size arrayBuffer')
     }
-  } else arrayBuffer = new ArrayBuffer(byteLength)
+  } else {
+    arrayBuffer = new ArrayBuffer(byteLength)
+  }
   this.arrayBuffer = arrayBuffer
 
   var offset = 0
@@ -65,9 +69,13 @@ IBF.prototype.clone = function () {
   })
 }
 
-IBF.prototype.insert = function (id) { change(this, id, 1) }
+IBF.prototype.insert = function (id) {
+  change(this, id, 1)
+}
 
-IBF.prototype.remove = function (id) { change(this, id, -1) }
+IBF.prototype.remove = function (id) {
+  change(this, id, -1)
+}
 
 function change (filter, id, deltaCount) {
   /* istanbul ignore if */
@@ -93,15 +101,21 @@ function changeAtIndex (filter, index, id, hash, deltaCount) {
 }
 
 IBF.prototype.has = function (id) {
-  return everyHash(this, id, function (count) { return count !== 0 })
+  return everyHash(this, id, function (count) {
+    return count !== 0
+  })
 }
 
 IBF.prototype.additional = function (id) {
-  return everyHash(this, id, function (count) { return count > 0 })
+  return everyHash(this, id, function (count) {
+    return count > 0
+  })
 }
 
 IBF.prototype.missing = function (id) {
-  return everyHash(this, id, function (count) { return count < 0 })
+  return everyHash(this, id, function (count) {
+    return count < 0
+  })
 }
 
 function everyHash (filter, id, predicate) {
@@ -119,7 +133,9 @@ IBF.prototype.subtract = function (otherIBF) {
     throw new Error('Different cellCount values')
   }
   otherIBF.counts.forEach(function (count, index) {
-    if (count === 0) return
+    if (count === 0) {
+      return
+    }
     var id = idSumOf(otherIBF, index).slice().buffer
     var hash = thisIBF.checkHash(id)
     changeAtIndex(thisIBF, index, id, hash, -count)
@@ -136,7 +152,9 @@ IBF.prototype.decode = function () {
   var pureList = findPureCells()
   while (pureList.length !== 0) {
     pureList.forEach(function (pureIndex) {
-      if (!isPure(self, pureIndex)) return
+      if (!isPure(self, pureIndex)) {
+        return
+      }
       var id = idSumOf(self, pureIndex).slice().buffer
       var count = self.counts[pureIndex]
       if (count === 1) {
@@ -154,27 +172,42 @@ IBF.prototype.decode = function () {
     var pures = []
     var length = self.counts.length
     for (var index = 0; index < length; index++) {
-      if (isPure(self, index)) pures.push(index)
+      if (isPure(self, index)) {
+        pures.push(index)
+      }
     }
     return pures
   }
 
   for (var index = 0; index < cellCount; index++) {
-    if (self.counts[index] !== 0) return false
-    if (!isZero(idSumOf(self, index))) return false
-    if (!isZero(hashSumOf(self, index))) return false
+    if (self.counts[index] !== 0) {
+      return false
+    }
+    if (!isZero(idSumOf(self, index))) {
+      return false
+    }
+    if (!isZero(hashSumOf(self, index))) {
+      return false
+    }
   }
 
-  return {additional: additional, missing: missing}
+  return {
+    additional: additional,
+    missing: missing
+  }
 }
 
 function isPure (filter, index) {
   var count = filter.counts[index]
-  if (count !== 1 && count !== -1) return false
+  if (count !== 1 && count !== -1) {
+    return false
+  }
   var idSum = idSumOf(filter, index).slice().buffer
   var hashOfIdSum = filter.checkHash(idSum)
   var hashSum = hashSumOf(filter, index)
-  if (!equal(hashSum, hashOfIdSum)) return false
+  if (!equal(hashSum, hashOfIdSum)) {
+    return false
+  }
   return true
 }
 
@@ -189,7 +222,9 @@ function hashSumOf (filter, index, copy) {
 }
 
 function isZero (view) {
-  return view.every(function (element) { return element === 0 })
+  return view.every(function (element) {
+    return element === 0
+  })
 }
 
 function xor (view, buffer) {
