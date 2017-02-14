@@ -42,12 +42,10 @@ var options = {
   countView: Int32Array,
 
   // Keys will be SHA-2 digests of 8 * 32 = 256 bits.
-  idSumElements: 8,
-  idSumView: Uint32Array,
+  idSumOctets: 32,
 
   // Internal hashes will be 32-bit murmur digests.
-  hashSumElements: 1,
-  hashSumView: Uint32Array
+  hashSumOctets: 4
 }
 
 var filter = new IBF(options)
@@ -102,6 +100,7 @@ assert(clone.missing(keys.d), 'clone missing D')
 ## Subtraction and Decoding
 
 ```javascript
+console.log('SUBTRACING')
 var hasABC = IBF(options)
 hasABC.insert(keys.a)
 hasABC.insert(keys.b)
