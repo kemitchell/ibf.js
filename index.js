@@ -34,7 +34,11 @@ function IBF (options) {
     arrayBuffer = options.arrayBuffer
     /* istanbul ignore if */
     if (arrayBuffer.byteLength !== byteLength) {
-      throw new Error('Wrong size arrayBuffer')
+      throw new Error(
+        'Wrong size arrayBuffer. ' +
+        'Expected ' + byteLength + ' bytes. ' +
+        'Received ' + arrayBuffer.byteLength + ' bytes.'
+      )
     }
   } else {
     arrayBuffer = new ArrayBuffer(byteLength)
