@@ -38,9 +38,6 @@ var options = {
     }
   }),
 
-  // Count hashes with 32-bit integers.
-  countView: Int32Array,
-
   // Keys will be SHA-2 digests of 8 * 32 = 256 bits.
   idSumOctets: 32,
 

@@ -12,7 +12,7 @@ function IBF (options) {
 
   var cellCount = this.cellCount = options.cellCount
 
-  var CountView = this.CountView = options.countView
+  var CountView = this.CountView = Int32Array
   var countsBytes = CountView.BYTES_PER_ELEMENT * cellCount
 
   var IdSumView = this.IdSumView = Uint8Array
@@ -31,15 +31,15 @@ function IBF (options) {
 
   var arrayBuffer
   if (options.arrayBuffer) {
-    arrayBuffer = options.arrayBuffer
     /* istanbul ignore if */
-    if (arrayBuffer.byteLength !== byteLength) {
+    if (options.arrayBuffer.byteLength !== byteLength) {
       throw new Error(
         'Wrong size arrayBuffer. ' +
         'Expected ' + byteLength + ' bytes. ' +
         'Received ' + arrayBuffer.byteLength + ' bytes.'
       )
     }
+    arrayBuffer = options.arrayBuffer
   } else {
     arrayBuffer = new ArrayBuffer(byteLength)
   }
@@ -64,10 +64,9 @@ IBF.prototype.clone = function () {
     checkHash: this.checkHash,
     keyHashes: this.keyHashes,
     cellCount: this.cellCount,
-    countView: this.CountView,
     idSumOctets: this.idSumOctets,
     hashSumOctets: this.hashSumOctets,
-    arrayBuffer: this.arrayBuffer.slice(0)
+    arrayBuffer: this.arrayBuffer.slice()
   })
 }
 
@@ -94,6 +93,7 @@ function changeAtIndex (filter, index, id, hash, deltaCount) {
   // console.log('Index  ', index)
 
   // console.log('count  ', filter.counts[index])
+  // console.log('%s is %j', 'deltaCount', deltaCount)
   filter.counts[index] += deltaCount
   // console.log('       ', filter.counts[index])
 
@@ -150,6 +150,7 @@ IBF.prototype.subtract = function (otherIBF) {
     var hash = thisIBF.checkHash(copyOfId(thisIBF, idSum))
     // TODO Double check this branch logic against the paper.
     if (count !== 0 || !isZero(idSum)) {
+      // console.log('%s is %j', 'count at subtract', count)
       changeAtIndex(thisIBF, index, idSum, hash, -count)
     }
   })
@@ -289,7 +290,6 @@ var optionValidations = {
   arrayBuffer: optional(isArrayBuffer),
   checkHash: isHash,
   keyHashes: isArrayOfHashes,
-  countView: isSignedView,
   idSumOctets: isPositiveInteger,
   hashSumOctets: isPositiveInteger
 }
