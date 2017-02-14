@@ -12,34 +12,34 @@ function IBF (options) {
 
   var cellCount = this.cellCount = options.cellCount
 
-  var CountView = this.CountView = options.countView
+  var CountView = this.CountView = Int32Array
   var countsBytes = CountView.BYTES_PER_ELEMENT * cellCount
 
-  var IdSumView = this.IdSumView = options.idSumView
-  var idSumElements = this.idSumElements = options.idSumElements
+  var IdSumView = this.IdSumView = Uint8Array
+  var idSumOctets = this.idSumOctets = options.idSumOctets
   var idSumsBytes = (
-    IdSumView.BYTES_PER_ELEMENT * idSumElements * cellCount
+    IdSumView.BYTES_PER_ELEMENT * idSumOctets * cellCount
   )
 
-  var HashSumView = this.HashSumView = options.hashSumView
-  var hashSumElements = this.hashSumElements = options.hashSumElements
+  var HashSumView = this.HashSumView = Uint8Array
+  var hashSumOctets = this.hashSumOctets = options.hashSumOctets
   var hashSumsBytes = (
-    HashSumView.BYTES_PER_ELEMENT * hashSumElements * cellCount
+    HashSumView.BYTES_PER_ELEMENT * hashSumOctets * cellCount
   )
 
   var byteLength = countsBytes + idSumsBytes + hashSumsBytes
 
   var arrayBuffer
   if (options.arrayBuffer) {
-    arrayBuffer = options.arrayBuffer
     /* istanbul ignore if */
-    if (arrayBuffer.byteLength !== byteLength) {
+    if (options.arrayBuffer.byteLength !== byteLength) {
       throw new Error(
         'Wrong size arrayBuffer. ' +
         'Expected ' + byteLength + ' bytes. ' +
         'Received ' + arrayBuffer.byteLength + ' bytes.'
       )
     }
+    arrayBuffer = options.arrayBuffer
   } else {
     arrayBuffer = new ArrayBuffer(byteLength)
   }
@@ -50,12 +50,12 @@ function IBF (options) {
 
   offset += countsBytes
   this.idSums = new IdSumView(
-    arrayBuffer, offset, cellCount * idSumElements
+    arrayBuffer, offset, cellCount * idSumOctets
   )
 
   offset += idSumsBytes
   this.hashSums = new HashSumView(
-    arrayBuffer, offset, cellCount * hashSumElements
+    arrayBuffer, offset, cellCount * hashSumOctets
   )
 }
 
@@ -64,12 +64,9 @@ IBF.prototype.clone = function () {
     checkHash: this.checkHash,
     keyHashes: this.keyHashes,
     cellCount: this.cellCount,
-    countView: this.CountView,
-    idSumView: this.IdSumView,
-    idSumElements: this.idSumElements,
-    hashSumView: this.HashSumView,
-    hashSumElements: this.hashSumElements,
-    arrayBuffer: this.arrayBuffer.slice(0)
+    idSumOctets: this.idSumOctets,
+    hashSumOctets: this.hashSumOctets,
+    arrayBuffer: this.arrayBuffer.slice()
   })
 }
 
@@ -86,22 +83,16 @@ function change (filter, id, deltaCount) {
   if (!isArrayBuffer(id)) {
     throw new Error('Argument must be an ArrayBuffer')
   }
-  var checkHash = filter.checkHash
+  var checkDigest = filter.checkHash(id)
   filter.keyHashes.forEach(function (hash) {
-    changeAtIndex(filter, hash(id), id, checkHash(id), deltaCount)
+    changeAtIndex(filter, hash(id), id, checkDigest, deltaCount)
   })
 }
 
 function changeAtIndex (filter, index, id, hash, deltaCount) {
   filter.counts[index] += deltaCount
-  var existingId = filter.idSums.subarray(
-    index, index + filter.idSumElements
-  )
-  xor(existingId, id)
-  var existingHashSum = filter.hashSums.subarray(
-    index, index + filter.hashSumElements
-  )
-  xor(existingHashSum, hash)
+  xor(idSumOf(filter, index), id)
+  xor(hashSumOf(filter, index), hash)
 }
 
 IBF.prototype.has = function (id) {
@@ -131,20 +122,26 @@ function everyHash (filter, id, predicate) {
 
 IBF.prototype.subtract = function (otherIBF) {
   var thisIBF = this
-  var cellCount = thisIBF.cellCount
   /* istanbul ignore if */
-  if (cellCount !== otherIBF.cellCount) {
+  if (thisIBF.cellCount !== otherIBF.cellCount) {
     throw new Error('Different cellCount values')
   }
   otherIBF.counts.forEach(function (count, index) {
-    if (count === 0) {
-      return
-    }
-    var id = idSumOf(otherIBF, index).slice().buffer
-    var hash = thisIBF.checkHash(id)
-    changeAtIndex(thisIBF, index, id, hash, -count)
+    var idSum = idSumOf(otherIBF, index)
+    var hashSum = hashSumOf(otherIBF, index)
+    changeAtIndex(thisIBF, index, idSum, hashSum, -count)
   })
 }
+
+function copyOfId (filter, view) {
+  var returned = new ArrayBuffer(
+    filter.IdSumView.BYTES_PER_ELEMENT * filter.idSumOctets
+  )
+  new Uint8Array(returned).set(new Uint8Array(view))
+  return returned
+}
+
+// TODO Throw informative errors instead of returning false.
 
 IBF.prototype.decode = function () {
   var self = this
@@ -160,12 +157,12 @@ IBF.prototype.decode = function () {
       if (!isPure(self, pureIndex)) {
         return
       }
-      var id = idSumOf(self, pureIndex).slice().buffer
+      var id = copyOfId(self, idSumOf(self, pureIndex))
       var count = self.counts[pureIndex]
       if (count === 1) {
         additional.push({id: id})
         self.remove(id)
-      } else {
+      } else if (count === -1) {
         missing.push({id: id})
         self.insert(id)
       }
@@ -210,7 +207,7 @@ function isPure (filter, index) {
   if (count !== 1 && count !== -1) {
     return false
   }
-  var idSum = idSumOf(filter, index).slice().buffer
+  var idSum = copyOfId(filter, idSumOf(filter, index))
   var hashOfIdSum = filter.checkHash(idSum)
   var hashSum = hashSumOf(filter, index)
   if (!equal(hashSum, hashOfIdSum)) {
@@ -222,11 +219,19 @@ function isPure (filter, index) {
 // Helpers
 
 function idSumOf (filter, index) {
-  return filter.idSums.subarray(index, index + filter.idSumElements)
+  var elements = filter.idSumOctets
+  var perElement = filter.IdSumView.BYTES_PER_ELEMENT
+  var perSum = elements * perElement
+  var offset = index * perSum
+  return filter.idSums.subarray(offset, offset + perSum)
 }
 
-function hashSumOf (filter, index, copy) {
-  return filter.hashSums.subarray(index, index + filter.hashSumElements)
+function hashSumOf (filter, index) {
+  var elements = filter.hashSumOctets
+  var perElement = filter.HashSumView.BYTES_PER_ELEMENT
+  var perSum = elements * perElement
+  var offset = index * perSum
+  return filter.hashSums.subarray(offset, offset + perSum)
 }
 
 function isZero (view) {
@@ -262,11 +267,8 @@ var optionValidations = {
   arrayBuffer: optional(isArrayBuffer),
   checkHash: isHash,
   keyHashes: isArrayOfHashes,
-  countView: isSignedView,
-  idSumView: isUnsignedView,
-  idSumElements: isPositiveInteger,
-  hashSumView: isUnsignedView,
-  hashSumElements: isPositiveInteger
+  idSumOctets: isPositiveInteger,
+  hashSumOctets: isPositiveInteger
 }
 
 function validateOptions (options) {
@@ -299,23 +301,6 @@ function isPositiveInteger (n) {
   return (
     Number.isInteger(n) &&
     n > 0
-  )
-}
-
-function isSignedView (view) {
-  return (
-    view === Int8Array ||
-    view === Int16Array ||
-    view === Int32Array
-  )
-}
-
-function isUnsignedView (view) {
-  return (
-    view === Uint8Array ||
-    view === Uint8ClampedArray ||
-    view === Uint16Array ||
-    view === Uint32Array
   )
 }
 

@@ -38,16 +38,11 @@ var options = {
     }
   }),
 
-  // Count hashes with 32-bit integers.
-  countView: Int32Array,
-
   // Keys will be SHA-2 digests of 8 * 32 = 256 bits.
-  idSumElements: 8,
-  idSumView: Uint32Array,
+  idSumOctets: 32,
 
   // Internal hashes will be 32-bit murmur digests.
-  hashSumElements: 1,
-  hashSumView: Uint32Array
+  hashSumOctets: 4
 }
 
 var filter = new IBF(options)
