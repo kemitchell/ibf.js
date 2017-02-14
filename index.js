@@ -91,23 +91,23 @@ function change (filter, id, deltaCount) {
 }
 
 function changeAtIndex (filter, index, id, hash, deltaCount) {
-  console.log('Index  ', index)
+  // console.log('Index  ', index)
 
-  console.log('count  ', filter.counts[index])
+  // console.log('count  ', filter.counts[index])
   filter.counts[index] += deltaCount
-  console.log('       ', filter.counts[index])
+  // console.log('       ', filter.counts[index])
 
-  console.log('id     ', showBuffer(id))
-  console.log('idSum  ', showBuffer(idSumOf(filter, index)))
+  // console.log('id     ', showBuffer(id))
+  // console.log('idSum  ', showBuffer(idSumOf(filter, index)))
   xor(idSumOf(filter, index), id)
-  console.log('       ', showBuffer(idSumOf(filter, index)))
+  // console.log('       ', showBuffer(idSumOf(filter, index)))
 
-  console.log('hash   ', showBuffer(hash))
-  console.log('hashSum', showBuffer(hashSumOf(filter, index)))
+  // console.log('hash   ', showBuffer(hash))
+  // console.log('hashSum', showBuffer(hashSumOf(filter, index)))
   xor(hashSumOf(filter, index), hash)
-  console.log('       ', showBuffer(hashSumOf(filter, index)))
+  // console.log('       ', showBuffer(hashSumOf(filter, index)))
 
-  console.log()
+  // console.log()
 }
 
 function showBuffer (b) {
@@ -146,9 +146,12 @@ IBF.prototype.subtract = function (otherIBF) {
     throw new Error('Different cellCount values')
   }
   otherIBF.counts.forEach(function (count, index) {
-    var id = idSumOf(otherIBF, index)
-    var hash = thisIBF.checkHash(copyOfId(thisIBF, id))
-    changeAtIndex(thisIBF, index, id, hash, -count)
+    var idSum = idSumOf(otherIBF, index)
+    var hash = thisIBF.checkHash(copyOfId(thisIBF, idSum))
+    // TODO Double check this branch logic against the paper.
+    if (count !== 0 || !isZero(idSum)) {
+      changeAtIndex(thisIBF, index, idSum, hash, -count)
+    }
   })
 }
 
@@ -159,6 +162,8 @@ function copyOfId (filter, view) {
   new Uint8Array(returned).set(new Uint8Array(view))
   return returned
 }
+
+// TODO Throw informative errors instead of returning false.
 
 IBF.prototype.decode = function () {
   var self = this
@@ -175,7 +180,6 @@ IBF.prototype.decode = function () {
         return
       }
       var id = copyOfId(self, idSumOf(self, pureIndex))
-      console.log(new Buffer(id))
       var count = self.counts[pureIndex]
       if (count === 1) {
         additional.push({id: id})

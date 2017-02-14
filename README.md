@@ -100,7 +100,6 @@ assert(clone.missing(keys.d), 'clone missing D')
 ## Subtraction and Decoding
 
 ```javascript
-console.log('SUBTRACING')
 var hasABC = IBF(options)
 hasABC.insert(keys.a)
 hasABC.insert(keys.b)
