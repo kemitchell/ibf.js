@@ -118,16 +118,16 @@ assert.equal(decoded.additional.length, 2)
 function toHex (x) { return new Buffer(x).toString('hex') }
 
 assert(decoded.additional.some(function (element) {
-  return toHex(element.id) === toHex(keys.a)
+  return toHex(element) === toHex(keys.a)
 }), 'additional A')
 
 assert(decoded.additional.some(function (element) {
-  return toHex(element.id) === toHex(keys.b)
+  return toHex(element) === toHex(keys.b)
 }), 'additional B')
 
 assert.equal(decoded.missing.length, 1)
 
 assert(decoded.missing.some(function (element) {
-  return toHex(element.id) === toHex(keys.d)
+  return toHex(element) === toHex(keys.d)
 }), 'missing D')
 ```
