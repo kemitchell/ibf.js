@@ -315,23 +315,6 @@ function isPositiveInteger (n) {
   )
 }
 
-function isSignedView (view) {
-  return (
-    view === Int8Array ||
-    view === Int16Array ||
-    view === Int32Array
-  )
-}
-
-function isUnsignedView (view) {
-  return (
-    view === Uint8Array ||
-    view === Uint8ClampedArray ||
-    view === Uint16Array ||
-    view === Uint32Array
-  )
-}
-
 function isArrayBuffer (id) {
   return id instanceof ArrayBuffer
 }
