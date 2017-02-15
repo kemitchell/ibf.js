@@ -221,6 +221,7 @@ function isPure (filter, index) {
   var idSum = copyOfId(filter, idSumOf(filter, index))
   var hashOfIdSum = filter.checkHash(idSum)
   var hashSum = hashSumOf(filter, index)
+  /* istanbul ignore if */
   if (!equal(hashSum, hashOfIdSum)) {
     return false
   }
