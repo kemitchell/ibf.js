@@ -162,7 +162,7 @@ IBF.prototype.decode = function () {
       if (count === 1) {
         additional.push(id)
         self.remove(id)
-      } else if (count === -1) {
+      } else {
         missing.push(id)
         self.insert(id)
       }
