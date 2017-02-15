@@ -90,28 +90,9 @@ function change (filter, id, deltaCount) {
 }
 
 function changeAtIndex (filter, index, id, hash, deltaCount) {
-  // console.log('Index  ', index)
-
-  // console.log('count  ', filter.counts[index])
-  // console.log('%s is %j', 'deltaCount', deltaCount)
   filter.counts[index] += deltaCount
-  // console.log('       ', filter.counts[index])
-
-  // console.log('id     ', showBuffer(id))
-  // console.log('idSum  ', showBuffer(idSumOf(filter, index)))
   xor(idSumOf(filter, index), id)
-  // console.log('       ', showBuffer(idSumOf(filter, index)))
-
-  // console.log('hash   ', showBuffer(hash))
-  // console.log('hashSum', showBuffer(hashSumOf(filter, index)))
   xor(hashSumOf(filter, index), hash)
-  // console.log('       ', showBuffer(hashSumOf(filter, index)))
-
-  // console.log()
-}
-
-function showBuffer (b) {
-  return new Buffer(b).toString('hex')
 }
 
 IBF.prototype.has = function (id) {
