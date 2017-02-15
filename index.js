@@ -128,12 +128,8 @@ IBF.prototype.subtract = function (otherIBF) {
   }
   otherIBF.counts.forEach(function (count, index) {
     var idSum = idSumOf(otherIBF, index)
-    var hash = thisIBF.checkHash(copyOfId(thisIBF, idSum))
-    // TODO Double check this branch logic against the paper.
-    if (count !== 0 || !isZero(idSum)) {
-      // console.log('%s is %j', 'count at subtract', count)
-      changeAtIndex(thisIBF, index, idSum, hash, -count)
-    }
+    var hashSum = hashSumOf(otherIBF, index)
+    changeAtIndex(thisIBF, index, idSum, hashSum, -count)
   })
 }
 
