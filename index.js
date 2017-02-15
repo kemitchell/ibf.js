@@ -184,15 +184,26 @@ IBF.prototype.decode = function () {
   for (var index = 0; index < cellCount; index++) {
     /* istanbul ignore if */
     if (self.counts[index] !== 0) {
-      return false
+      throw new Error(
+        'Could not decode IBF. ' +
+        'Count ' + index + ' is ' + self.counts[index] + '.'
+      )
     }
     /* istanbul ignore if */
     if (!isZero(idSumOf(self, index))) {
-      return false
+      throw new Error(
+        'Could not decode IBF. ' +
+        'Cell ' + index + ' idsum ' +
+        'is ' + new Buffer(idSumOf(self, index)).toString('hex') + '.'
+      )
     }
     /* istanbul ignore if */
     if (!isZero(hashSumOf(self, index))) {
-      return false
+      throw new Error(
+        'Could not decode IBF. ' +
+        'Cell ' + index + ' hashSum ' +
+        'is ' + new Buffer(hashSumOf(self, index)).toString('hex') + '.'
+      )
     }
   }
 
