@@ -160,10 +160,10 @@ IBF.prototype.decode = function () {
       var id = copyOfId(self, idSumOf(self, pureIndex))
       var count = self.counts[pureIndex]
       if (count === 1) {
-        additional.push({id: id})
+        additional.push(id)
         self.remove(id)
       } else if (count === -1) {
-        missing.push({id: id})
+        missing.push(id)
         self.insert(id)
       }
     })
