@@ -194,7 +194,7 @@ IBF.prototype.decode = function () {
       throw new Error(
         'Could not decode IBF. ' +
         'Cell ' + index + ' idsum ' +
-        'is ' + new Buffer(idSumOf(self, index)).toString('hex') + '.'
+        'is ' + Buffer.from(idSumOf(self, index)).toString('hex') + '.'
       )
     }
     /* istanbul ignore if */
@@ -202,7 +202,7 @@ IBF.prototype.decode = function () {
       throw new Error(
         'Could not decode IBF. ' +
         'Cell ' + index + ' hashSum ' +
-        'is ' + new Buffer(hashSumOf(self, index)).toString('hex') + '.'
+        'is ' + Buffer.from(hashSumOf(self, index)).toString('hex') + '.'
       )
     }
   }

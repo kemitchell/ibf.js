@@ -115,7 +115,7 @@ assert(decoded !== false)
 
 assert.equal(decoded.additional.length, 2)
 
-function toHex (x) { return new Buffer(x).toString('hex') }
+function toHex (x) { return Buffer.from(x).toString('hex') }
 
 assert(decoded.additional.some(function (element) {
   return toHex(element) === toHex(keys.a)
