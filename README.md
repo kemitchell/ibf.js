@@ -47,7 +47,7 @@ var options = {
 
 var filter = new IBF(options)
 
-assert.equal(filter.arrayBuffer.byteLength, 4000)
+assert.deepStrictEqual(filter.arrayBuffer.byteLength, 4000)
 
 assert.throws(function () {
   IBF({})
@@ -113,7 +113,7 @@ var decoded = difference.decode()
 
 assert(decoded !== false)
 
-assert.equal(decoded.additional.length, 2)
+assert.deepStrictEqual(decoded.additional.length, 2)
 
 function toHex (x) { return Buffer.from(x).toString('hex') }
 
@@ -125,7 +125,7 @@ assert(decoded.additional.some(function (element) {
   return toHex(element) === toHex(keys.b)
 }), 'additional B')
 
-assert.equal(decoded.missing.length, 1)
+assert.deepStrictEqual(decoded.missing.length, 1)
 
 assert(decoded.missing.some(function (element) {
   return toHex(element) === toHex(keys.d)

@@ -13,6 +13,7 @@
     "istanbul": "^0.4.4",
     "replace-require-self": "^1.1.1",
     "standard": "^12.0.1",
+    "standard-markdown": "^5.0.1",
     "xxhashjs": "^0.2.1"
   },
   "scripts": {
@@ -21,6 +22,6 @@
     "test": "defence README.md | replace-require-self | node && echo 'All tests passed.'",
     "lint": "npm run lint:code && npm run lint:readme",
     "lint:code": "standard",
-    "lint:readme": "! defence README.md | standard --stdin --verbose 2>/dev/null | grep -F -v 'no-multiple-empty-lines' | grep -F -v 'standardjs.com'"
+    "lint:readme": "standard-markdown README.md"
   }
 }
