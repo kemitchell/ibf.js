@@ -13,7 +13,7 @@
     "istanbul": "^0.4.4",
     "replace-require-self": "^1.1.1",
     "standard": "^16.0.3",
-    "standard-markdown": "^5.0.1",
+    "standard-markdown": "^6.0.0",
     "xxhashjs": "^0.2.1"
   },
   "scripts": {
