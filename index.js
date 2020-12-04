@@ -1,45 +1,50 @@
 module.exports = IBF
 
-function IBF (options) {
+function IBF ({
+  checkHash,
+  keyHashes,
+  cellCount,
+  idSumOctets,
+  hashSumOctets,
+  arrayBuffer
+}) {
   if (!(this instanceof IBF)) {
-    return new IBF(options)
+    return new IBF(arguments[0])
   }
 
-  validateOptions(options)
+  validateOptions(arguments[0])
 
-  this.checkHash = options.checkHash
-  this.keyHashes = options.keyHashes
+  this.checkHash = checkHash
+  this.keyHashes = keyHashes
 
-  const cellCount = this.cellCount = options.cellCount
+  this.cellCount = cellCount
 
   const CountView = this.CountView = Int32Array
   const countsBytes = CountView.BYTES_PER_ELEMENT * cellCount
 
   const IdSumView = this.IdSumView = Uint8Array
-  const idSumOctets = this.idSumOctets = options.idSumOctets
+  this.idSumOctets = idSumOctets
   const idSumsBytes = (
     IdSumView.BYTES_PER_ELEMENT * idSumOctets * cellCount
   )
 
   const HashSumView = this.HashSumView = Uint8Array
-  const hashSumOctets = this.hashSumOctets = options.hashSumOctets
+  this.hashSumOctets = hashSumOctets
   const hashSumsBytes = (
     HashSumView.BYTES_PER_ELEMENT * hashSumOctets * cellCount
   )
 
   const byteLength = countsBytes + idSumsBytes + hashSumsBytes
 
-  let arrayBuffer
-  if (options.arrayBuffer) {
+  if (arrayBuffer) {
     /* istanbul ignore if */
-    if (options.arrayBuffer.byteLength !== byteLength) {
+    if (arrayBuffer.byteLength !== byteLength) {
       throw new Error(
         'Wrong size arrayBuffer. ' +
         'Expected ' + byteLength + ' bytes. ' +
         'Received ' + arrayBuffer.byteLength + ' bytes.'
       )
     }
-    arrayBuffer = options.arrayBuffer
   } else {
     arrayBuffer = new ArrayBuffer(byteLength)
   }
