@@ -10,26 +10,26 @@ function IBF (options) {
   this.checkHash = options.checkHash
   this.keyHashes = options.keyHashes
 
-  var cellCount = this.cellCount = options.cellCount
+  const cellCount = this.cellCount = options.cellCount
 
-  var CountView = this.CountView = Int32Array
-  var countsBytes = CountView.BYTES_PER_ELEMENT * cellCount
+  const CountView = this.CountView = Int32Array
+  const countsBytes = CountView.BYTES_PER_ELEMENT * cellCount
 
-  var IdSumView = this.IdSumView = Uint8Array
-  var idSumOctets = this.idSumOctets = options.idSumOctets
-  var idSumsBytes = (
+  const IdSumView = this.IdSumView = Uint8Array
+  const idSumOctets = this.idSumOctets = options.idSumOctets
+  const idSumsBytes = (
     IdSumView.BYTES_PER_ELEMENT * idSumOctets * cellCount
   )
 
-  var HashSumView = this.HashSumView = Uint8Array
-  var hashSumOctets = this.hashSumOctets = options.hashSumOctets
-  var hashSumsBytes = (
+  const HashSumView = this.HashSumView = Uint8Array
+  const hashSumOctets = this.hashSumOctets = options.hashSumOctets
+  const hashSumsBytes = (
     HashSumView.BYTES_PER_ELEMENT * hashSumOctets * cellCount
   )
 
-  var byteLength = countsBytes + idSumsBytes + hashSumsBytes
+  const byteLength = countsBytes + idSumsBytes + hashSumsBytes
 
-  var arrayBuffer
+  let arrayBuffer
   if (options.arrayBuffer) {
     /* istanbul ignore if */
     if (options.arrayBuffer.byteLength !== byteLength) {
@@ -45,7 +45,7 @@ function IBF (options) {
   }
   this.arrayBuffer = arrayBuffer
 
-  var offset = 0
+  let offset = 0
   this.counts = new CountView(arrayBuffer, offset, cellCount)
 
   offset += countsBytes
@@ -83,7 +83,7 @@ function change (filter, id, deltaCount) {
   if (!isArrayBuffer(id)) {
     throw new Error('Argument must be an ArrayBuffer')
   }
-  var checkDigest = filter.checkHash(id)
+  const checkDigest = filter.checkHash(id)
   filter.keyHashes.forEach(function (hash) {
     changeAtIndex(filter, hash(id), id, checkDigest, deltaCount)
   })
@@ -114,27 +114,27 @@ IBF.prototype.missing = function (id) {
 }
 
 function everyHash (filter, id, predicate) {
-  var counts = filter.counts
+  const counts = filter.counts
   return filter.keyHashes.every(function (hash) {
     return predicate(counts[hash(id)])
   })
 }
 
 IBF.prototype.subtract = function (otherIBF) {
-  var thisIBF = this
+  const thisIBF = this
   /* istanbul ignore if */
   if (thisIBF.cellCount !== otherIBF.cellCount) {
     throw new Error('Different cellCount values')
   }
   otherIBF.counts.forEach(function (count, index) {
-    var idSum = idSumOf(otherIBF, index)
-    var hashSum = hashSumOf(otherIBF, index)
+    const idSum = idSumOf(otherIBF, index)
+    const hashSum = hashSumOf(otherIBF, index)
     changeAtIndex(thisIBF, index, idSum, hashSum, -count)
   })
 }
 
 function copyOfId (filter, view) {
-  var returned = new ArrayBuffer(
+  const returned = new ArrayBuffer(
     filter.IdSumView.BYTES_PER_ELEMENT * filter.idSumOctets
   )
   new Uint8Array(returned).set(new Uint8Array(view))
@@ -144,21 +144,21 @@ function copyOfId (filter, view) {
 // TODO Throw informative errors instead of returning false.
 
 IBF.prototype.decode = function () {
-  var self = this
-  var additional = []
-  var missing = []
+  const self = this
+  const additional = []
+  const missing = []
 
-  var cellCount = this.cellCount
+  const cellCount = this.cellCount
 
-  var pureList = findPureCells()
+  let pureList = findPureCells()
   while (pureList.length !== 0) {
     pureList.forEach(function (pureIndex) {
       /* istanbul ignore if */
       if (!isPure(self, pureIndex)) {
         return
       }
-      var id = copyOfId(self, idSumOf(self, pureIndex))
-      var count = self.counts[pureIndex]
+      const id = copyOfId(self, idSumOf(self, pureIndex))
+      const count = self.counts[pureIndex]
       if (count === 1) {
         additional.push(id)
         self.remove(id)
@@ -171,9 +171,9 @@ IBF.prototype.decode = function () {
   }
 
   function findPureCells () {
-    var pures = []
-    var length = self.counts.length
-    for (var index = 0; index < length; index++) {
+    const pures = []
+    const length = self.counts.length
+    for (let index = 0; index < length; index++) {
       if (isPure(self, index)) {
         pures.push(index)
       }
@@ -181,7 +181,7 @@ IBF.prototype.decode = function () {
     return pures
   }
 
-  for (var index = 0; index < cellCount; index++) {
+  for (let index = 0; index < cellCount; index++) {
     /* istanbul ignore if */
     if (self.counts[index] !== 0) {
       throw new Error(
@@ -214,13 +214,13 @@ IBF.prototype.decode = function () {
 }
 
 function isPure (filter, index) {
-  var count = filter.counts[index]
+  const count = filter.counts[index]
   if (count !== 1 && count !== -1) {
     return false
   }
-  var idSum = copyOfId(filter, idSumOf(filter, index))
-  var hashOfIdSum = filter.checkHash(idSum)
-  var hashSum = hashSumOf(filter, index)
+  const idSum = copyOfId(filter, idSumOf(filter, index))
+  const hashOfIdSum = filter.checkHash(idSum)
+  const hashSum = hashSumOf(filter, index)
   /* istanbul ignore if */
   if (!equal(hashSum, hashOfIdSum)) {
     return false
@@ -231,18 +231,18 @@ function isPure (filter, index) {
 // Helpers
 
 function idSumOf (filter, index) {
-  var elements = filter.idSumOctets
-  var perElement = filter.IdSumView.BYTES_PER_ELEMENT
-  var perSum = elements * perElement
-  var offset = index * perSum
+  const elements = filter.idSumOctets
+  const perElement = filter.IdSumView.BYTES_PER_ELEMENT
+  const perSum = elements * perElement
+  const offset = index * perSum
   return filter.idSums.subarray(offset, offset + perSum)
 }
 
 function hashSumOf (filter, index) {
-  var elements = filter.hashSumOctets
-  var perElement = filter.HashSumView.BYTES_PER_ELEMENT
-  var perSum = elements * perElement
-  var offset = index * perSum
+  const elements = filter.hashSumOctets
+  const perElement = filter.HashSumView.BYTES_PER_ELEMENT
+  const perSum = elements * perElement
+  const offset = index * perSum
   return filter.hashSums.subarray(offset, offset + perSum)
 }
 
@@ -253,28 +253,28 @@ function isZero (view) {
 }
 
 function xor (view, buffer) {
-  var correspondingView = makeCorresponding(view, buffer)
+  const correspondingView = makeCorresponding(view, buffer)
   view.forEach(function (existingElement, index) {
-    var correspondingElement = correspondingView[index]
+    const correspondingElement = correspondingView[index]
     view[index] = existingElement ^ correspondingElement
   })
 }
 
 function equal (view, buffer) {
-  var correspondingView = makeCorresponding(view, buffer)
+  const correspondingView = makeCorresponding(view, buffer)
   return view.every(function (element, index) {
     return element === correspondingView[index]
   })
 }
 
 function makeCorresponding (view, buffer) {
-  var ViewType = view.constructor
+  const ViewType = view.constructor
   return new ViewType(buffer)
 }
 
 // Validation
 
-var optionValidations = {
+const optionValidations = {
   cellCount: isPositiveInteger,
   arrayBuffer: optional(isArrayBuffer),
   checkHash: isHash,
